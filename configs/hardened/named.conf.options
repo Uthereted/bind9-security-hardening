@@ -1,0 +1,133 @@
+options {
+
+    /*
+     * Directory used by BIND for runtime/cache files.
+     *
+     * This is the standard directory on Debian/Ubuntu.
+     */
+    directory "/var/cache/bind";
+
+
+    /*
+     * ==========================================================
+     * RECURSION
+     * ==========================================================
+     *
+     * Only trusted machines are allowed to use this DNS server
+     * as a recursive resolver.
+     *
+     * An open recursive DNS server can be abused in DNS
+     * amplification/reflection attacks.
+     */
+
+    recursion yes;
+
+    allow-recursion {
+        127.0.0.1;
+        192.168.56.0/24;
+    };
+
+
+    /*
+     * Only trusted clients can access cached recursive answers.
+     */
+    allow-query-cache {
+        127.0.0.1;
+        192.168.56.0/24;
+    };
+
+
+    /*
+     * ==========================================================
+     * DNS QUERIES
+     * ==========================================================
+     *
+     * Allow DNS queries from any client.
+     *
+     * This makes sense if this server hosts a public
+     * authoritative DNS zone.
+     *
+     * Recursion is still restricted separately above.
+     */
+    allow-query {
+        any;
+    };
+
+
+    /*
+     * ==========================================================
+     * ZONE TRANSFERS
+     * ==========================================================
+     *
+     * Disable zone transfers globally.
+     *
+     * Zone transfers (AXFR/IXFR) should only be enabled explicitly
+     * when a secondary DNS server actually requires them.
+     *
+     * An unrestricted AXFR can reveal the complete DNS zone.
+     */
+    allow-transfer {
+        none;
+    };
+
+
+    /*
+     * ==========================================================
+     * INFORMATION DISCLOSURE
+     * ==========================================================
+     *
+     * Do not expose the BIND version through version.bind.
+     *
+     * This prevents an attacker from easily identifying the exact
+     * BIND version and searching for version-specific vulnerabilities.
+     */
+    version none;
+
+
+    /*
+     * ==========================================================
+     * MINIMAL RESPONSES
+     * ==========================================================
+     *
+     * Avoid including unnecessary information in DNS responses.
+     *
+     * This reduces response size and limits unnecessary information
+     * disclosure.
+     */
+    minimal-responses yes;
+
+
+    /*
+     * ==========================================================
+     * DNSSEC
+     * ==========================================================
+     *
+     * Validate DNSSEC signatures when performing recursive queries.
+     */
+    dnssec-validation auto;
+
+
+    /*
+     * ==========================================================
+     * NETWORK
+     * ==========================================================
+     *
+     * Listen on IPv4 interfaces.
+     *
+     * In the laboratory this can later be restricted to the exact
+     * DNS server IP instead of "any".
+     */
+    listen-on {
+        any;
+    };
+
+
+    /*
+     * Disable IPv6 listening if IPv6 is not used in the laboratory.
+     *
+     * Unnecessary services/interfaces should not be exposed.
+     */
+    listen-on-v6 {
+        none;
+    };
+};
