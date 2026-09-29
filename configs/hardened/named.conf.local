@@ -1,14 +1,20 @@
 zone "grupo5.local" {
 
     type primary;
-
     file "/etc/bind/db.grupo5.local";
 
-    allow-transfer {
-        none;
-    };
 
-    allow-update {
-        none;
-    };
+    allow-transfer { none; }; // repeated here so the zone is safe even if the global setting changes
+    
+    
+    /*
+    ---------------------------------------------------------------
+     DYNAMIC UPDATES: DISABLED
+     Why:    Prevents remote clients from adding, changing or
+             deleting records.
+     Attack: Zone tampering, traffic redirection...
+     Test:   nsupdate ... (expect: update failed: REFUSED)
+    ---------------------------------------------------------------
+    */
+    allow-update { none; };
 };

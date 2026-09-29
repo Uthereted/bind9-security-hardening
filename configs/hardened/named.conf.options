@@ -1,50 +1,123 @@
+/*
+----------------------------------------------------------------
+TRUSTED CLIENTS ACL
+Why:    One named list of who may use this server as a resolver.
+         Defining it once keeps the rest of the config readable.
+----------------------------------------------------------------
+*/
 acl "trusted" {
-    127.0.0.1;
-    192.168.56.0/24;
+    127.0.0.1;          // localhost
+    192.168.56.0/24;    // our network (might need to adjust)
 };
 
 options {
 
-    directory "/var/cache/bind";
-
-    recursion yes;
-
-    allow-recursion {
-        trusted;
-    };
-
-    allow-query-cache {
-        trusted;
-    };
-
-    allow-query {
-        any;
-    };
-
-    allow-transfer {
-        none;
-    };
-
+    /*
+    ----------------------------------------------------------------
+     VERSION HIDING
+     Why:    Prevents attackers from fingerprinting the BIND release
+             and matching it against known CVEs.
+     Attack: Reconnaissance -> CVE lookup.
+     Test:   dig @<server> version.bind chaos txt   (expect REFUSED)
+    ---------------------------------------------------------------- 
+    */
     version none;
+    hostname none;
+    server-id none;
 
+
+    /*
+    -------------------------------------------------------------
+     RECURSION CONTROL
+     Why:    Stops this server being an open resolver.
+     Attack: DNS amplification DDoS, cache snooping.
+     Test:   dig @<server> google.com   from an untrusted host
+             (expect status: REFUSED)
+             dig @192.168.56.10 +norecurse google.com
+             (only vulnerable servers returns an answer)
+     -------------------------------------------------------------
+    */
+    directory "/var/cache/bind";
+    recursion yes;
+    allow-recursion { trusted; };   // who can ask for recursive lookups
+    allow-query-cache { trusted; }; // who can read from cached data
+    allow-query { any; };
+
+
+    /*
+    ------------------------------------------------------------------
+     ZONE TRANSFER: DEFAULT DENY
+     Why:    BIND's default is 'any', so anyone can download a
+             full copy of every zone with one dig command.
+     Attack: AXFR zone leak (reconnaissance).
+     Test:   dig @<server> axfr example.lab   (expect Transfer failed)
+    ------------------------------------------------------------------
+    */
+    allow-transfer { none; };
+
+
+    /*
+     ---------------------------------------------------------------------------------------
+     RESPONSE RATE LIMITING (RRL)
+     Why:    Stops this server being used as a reflector in DNS
+             amplification attacks (spoofed source IP = victim).
+     Attack: Reflection/amplification DDoS against a third party.
+     Test:   Send a burst of identical queries from a non-exempt
+             host and count how many answers come back.
+             for i in $(seq 1 100); do
+                dig @192.168.56.10 www.example.lab +tries=1 +time=1 +ignore +noall +answer
+             done | wc -l
+     ----------------------------------------------------------------------------------------
+    */
+    rate-limit {
+        responses-per-second 5;                 // maximum identical responses/sec per client network
+        window 5;                               // seconds over which the rate is averaged, longer ones tolerate short bursts
+        exempt-clients { 127.0.0.1; ::1; };     // never limit ourselves
+    };
+
+
+    /* 
+    ----------------------------------------------------------------
+     DNSSEC VALIDATION
+     Why:    Verifies the signatures on DNS answers, so forged data
+             (cache poisoning) is rejected instead of cached.
+     Attack: Cache poisoning.
+     Test:   dig @127.0.0.1 isc.org +dnssec  -> look for 'ad' flag
+     ----------------------------------------------------------------
+    */
+    dnssec-validation auto; // use the built-in root trust anchor and keep it updated
+
+
+    /*
+    ----------------------------------------------------------------
+     MINIMAL RESPONSES
+     Why:    Leaves out the optional authority/additional sections,
+             so each response is smaller and gives an attacker less
+             amplification per spoofed query.
+     Attack: DNS amplification/reflection (supports RRL, #4).
+     Test:   dig @<server> example.lab MX  and compare MSG SIZE
+    ----------------------------------------------------------------
+    */
     minimal-responses yes;
 
-    dnssec-validation auto;
 
-    rate-limit {
-        responses-per-second 5;
-        window 5;
-    };
-
+    /*
+    -------------------------------------------------------------
+     CACHE LIMITS
+     Why:    Bound the memory the cache can use, and how long any
+             cached answer (good or negative) can survive.
+     Attack: Cache-flooding resource exhaustion; long-lived
+             poisoned or forged entries.
+     Test:   rndc dumpdb -cache ; dig a long-TTL record and check
+             the returned TTL is capped at 3600.
+             dig @127.0.0.1 . NS +noall +answer
+     -------------------------------------------------------------
+    */
     max-cache-size 100M;
     max-cache-ttl 3600;
     max-ncache-ttl 3600;
 
-    listen-on {
-        any;
-    };
 
-    listen-on-v6 {
-        none;
-    };
+    listen-on { any; };     // to avoid timeouts we can use any, but for a final config using {127.0.0.1; <server ip>}; is better
+    listen-on-v6 { none; };
 };
