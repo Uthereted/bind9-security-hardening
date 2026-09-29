@@ -1,20 +1,16 @@
 $TTL 86400
 
 @   IN  SOA ns1.grupo5.local. admin.grupo5.local. (
-        2026092701  ; Serial
-        3600        ; Refresh
-        1800        ; Retry
-        604800      ; Expire
-        86400       ; Minimum TTL
+        2026092901
+        3600
+        1800
+        604800
+        86400
 )
 
-; Authoritative DNS server
-@       IN  NS      ns1.grupo5.local.
+@           IN  NS  ns1.grupo5.local.
 
-; DNS server
-ns1     IN  A       192.168.56.10
-
-; Example hosts
-www     IN  A       192.168.56.10
-mail    IN  A       192.168.56.30
-database IN A       192.168.56.40
+ns1         IN  A   192.168.56.10
+www         IN  A   192.168.56.10
+mail        IN  A   192.168.56.30
+database    IN  A   192.168.56.40
