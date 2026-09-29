@@ -1,31 +1,14 @@
-/*
- * Local authoritative DNS zone.
- *
- * This server is authoritative for grupo5.local.
- */
-
 zone "grupo5.local" {
 
-    /*
-     * This server contains the primary copy of the zone.
-     */
     type primary;
 
-    /*
-     * Location of the zone database.
-     */
     file "/etc/bind/db.grupo5.local";
 
-
-    /*
-     * SECURITY:
-     *
-     * Do not allow AXFR/IXFR zone transfers.
-     *
-     * If a secondary DNS server existed, this should instead
-     * contain only the IP address of that server.
-     */
     allow-transfer {
+        none;
+    };
+
+    allow-update {
         none;
     };
 };
