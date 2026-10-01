@@ -225,18 +225,27 @@ This helps prevent excessive memory consumption and limits how long potentially 
 
 ---
 
-# Summary
+# Security Checklist
 
-The main security improvements implemented in `named.conf.options` are:
+The following security measures were applied in this project:
 
-- Trusted client ACL
-- Restricted DNS recursion
-- Restricted cache access
-- Hidden BIND9 version and server information
-- Disabled zone transfers
-- Response Rate Limiting
-- DNSSEC validation
-- Minimal DNS responses
-- DNS cache limits
+- [ ] Restrict recursive DNS queries to trusted clients
+- [ ] Use an ACL for trusted clients
+- [ ] Disable DNS zone transfers
+- [ ] Disable dynamic DNS updates
+- [ ] Hide the BIND version, hostname and server ID
+- [ ] Enable Response Rate Limiting
+- [ ] Enable DNSSEC validation
+- [ ] Use minimal DNS responses
+- [ ] Limit DNS cache size and TTL
+- [ ] Disable unused IPv6 listening
+- [ ] Enable query and security logging
+- [ ] Define a local test DNS zone
+- [ ] Test DNS resolution with `dig`
+- [ ] Test that restricted operations are refused
 
-Together, these settings reduce information disclosure, restrict unauthorized access and help protect the DNS server against common attacks such as reconnaissance, DNS amplification, zone transfers and cache poisoning.
+## Final Result
+
+The hardened configuration reduces the amount of information exposed by the DNS server and restricts operations that could be abused by an attacker.
+
+The main differences compared with a default BIND9 configuration are the restriction of recursion, blocked zone transfers, hidden server information, rate limiting and improved logging.
