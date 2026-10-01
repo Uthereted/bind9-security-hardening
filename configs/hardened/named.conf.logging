@@ -1,18 +1,21 @@
+```conf
 logging {
 
+    // General BIND log
     channel bind_log {
 
         file "/var/log/bind/bind.log"
-            versions 3
-            size 10m;
+            versions 3      // Keep 3 rotated log files
+            size 10m;       // Maximum size of each log file
 
-        severity info;
+        severity info;      // Log informational messages and above
 
-        print-time yes;
-        print-severity yes;
-        print-category yes;
+        print-time yes;     // Include timestamp
+        print-severity yes; // Include severity level
+        print-category yes; // Include log category
     };
 
+    // Security-related log
     channel security_log {
 
         file "/var/log/bind/security.log"
@@ -26,6 +29,7 @@ logging {
         print-category yes;
     };
 
+    // DNS query log
     channel query_log {
 
         file "/var/log/bind/queries.log"
@@ -37,23 +41,29 @@ logging {
         print-time yes;
     };
 
+    // General BIND messages go to bind.log
     category default {
         bind_log;
     };
 
+    // Security events go to security.log
     category security {
         security_log;
     };
 
+    // DNS queries go to queries.log
     category queries {
         query_log;
     };
 
+    // Incoming zone transfer events go to security.log
     category xfer-in {
         security_log;
     };
 
+    // Outgoing zone transfer events go to security.log
     category xfer-out {
         security_log;
     };
 };
+```
