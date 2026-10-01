@@ -1,16 +1,31 @@
+```conf
 $TTL 86400
+// Default TTL for the DNS records in this zone.
+// 86400 seconds = 24 hours.
 
 @   IN  SOA ns1.grupo5.local. admin.grupo5.local. (
-        2026092901
-        3600
-        1800
-        604800
-        86400
+        2026092901   // Serial number of the zone
+        3600         // Refresh time
+        1800         // Retry time
+        604800       // Expiration time
+        86400        // Negative cache TTL
 )
 
+// SOA = Start of Authority.
+// It defines the main DNS server for the zone and basic timing values.
+
 @           IN  NS  ns1.grupo5.local.
+// Defines ns1.grupo5.local as the authoritative DNS server for this zone.
 
 ns1         IN  A   192.168.56.10
+// IP address of the DNS server.
+
 www         IN  A   192.168.56.10
+// IP address used for www.grupo5.local.
+
 mail        IN  A   192.168.56.30
+// IP address used for mail.grupo5.local.
+
 database    IN  A   192.168.56.40
+// IP address used for database.grupo5.local.
+```
