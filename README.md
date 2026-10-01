@@ -225,6 +225,66 @@ This helps prevent excessive memory consumption and limits how long potentially 
 
 ---
 
+
+## Additional System Hardening
+
+In addition to the BIND9 configuration files, security can also be improved at operating system level.
+
+These measures are not configured directly inside `named.conf`, but they can provide an additional layer of protection.
+
+### File Permissions
+
+BIND configuration files should only be modifiable by administrators.
+
+The `bind` user should only have the permissions required to read the configuration and write to the log directory.
+
+This follows the **Principle of Least Privilege**.
+
+### Chroot Jail
+
+BIND can be executed inside a **chroot environment**.
+
+This isolates the DNS process from the rest of the operating system.
+
+If BIND is compromised, the attacker would have much more limited access to the real filesystem.
+
+### Systemd Hardening
+
+Additional restrictions can be applied to the BIND service using `systemd`.
+
+Examples include:
+
+- Preventing access to user home directories
+- Preventing privilege escalation
+- Protecting system files
+- Isolating temporary files
+- Restricting access to kernel configuration
+
+### Host Firewall
+
+A firewall such as UFW can restrict access to DNS port `53`.
+
+For example, the server could accept DNS traffic only from the internal network:
+
+```bash
+sudo ufw allow from 192.168.56.0/24 to any port 53 proto udp
+sudo ufw allow from 192.168.56.0/24 to any port 53 proto tcp
+```
+
+This provides another layer of protection in addition to the BIND ACL.
+
+### Reverse DNS Zone
+
+A reverse DNS zone could also be added to resolve IP addresses back to hostnames using PTR records.
+
+For example:
+
+```text
+192.168.56.10 → ns1.grupo5.local
+```
+
+This is not strictly a security measure, but it would make the DNS configuration more complete.
+
 # Security Checklist
 
 The following security measures were applied in this project:
